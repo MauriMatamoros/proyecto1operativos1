@@ -24,9 +24,17 @@ int main(int argc, char const *argv[]) {
 	char response_data[1024];
 	//para leer el archivo y meterlo a response data
 	fgets(response_data, 1024,html_data);
+	cout<<response_data<<endl;
+
+	//***********************NO SIRVE************************
+	/*while(fgets(response_data, 1024, html_data) != NULL){
+      	//printf("%s",response_data);
+		cout<<response_data;
+	}
+	cout<<endl;*/
 
 	//cambios para http protocol -status code
-	char http_header[2048] = "HTTP/1.1 200 OK\r\n\n";
+	char http_header[2048]="HTTP/1.1 200 OK\r\n\n";
 	strcat(http_header,response_data);
 
 
