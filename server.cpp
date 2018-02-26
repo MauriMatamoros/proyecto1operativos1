@@ -97,8 +97,6 @@ void* req(void* Client) {
 	int connection = *((int*) Client);
 	char buffer[999999];
 	int received, fileDirectory, bytesRead;
-	
-	
 	received = recv(connection, buffer, 99999, 0);
 	// char mime*;
 	// mime = buffer;
@@ -111,8 +109,6 @@ void* req(void* Client) {
 	// cout << "route: " << parametros.route<<endl;
 	// cout<< "payload: " << parametros.payload << endl;
 	if(strcmp(parametros.request, "GET") == 0) {
-
-
 		FILE *html_data;
 		html_data = fopen("index.html","r");
 		char response_data[1024];
@@ -140,23 +136,37 @@ void* req(void* Client) {
 		strcat(html, "</h1><br/><p>Cuerpo: ");
 		strcat(html, Value);
 		strcat(html, "</p></body><br/></html>");
-
-
 		send(*((int*)Client),html,sizeof(html),0);
-		
-		
-
-
 	}else if(strcmp(parametros.request, "PUT") == 0 ){
-		FILE *html_data;
-		html_data = fopen("index.html","r");
+		char* UncleanKey;
+		char* Value;
+		UncleanKey = strtok(parametros.route, "=");
+		Value = strtok(NULL,"");
+		int size = strlen(UncleanKey);
+		size-=2;
+		char Key[size];
+		for (int i = 2; i < size+2; ++i){
+			Key[i-2] = UncleanKey[i];
+		}
+		char html [2048];
+		strcat(html,"<!DOCTYPE html><html><head><title>Linux Server</title></head><body><h1>Titulo: ");
+		strcat(html, Key);
+		strcat(html, "</h1><br/><p>Cuerpo: ");
+		strcat(html, Value);
+		strcat(html, "</p></body><br/></html>");
+
+	  	FILE *html_data;
+		html_data = fopen("index.html","w");
 		char response_data[1024];
 		fgets(response_data, 1024,html_data);
 		char http_header[2048]="HTTP/1.1 200 OK\r\n\n";
-		strcat(http_header,response_data);
+		if (html_data!=NULL){
+	    	fputs (html,html_data);
+	    	fclose (html_data);
+	  	}
+	  	strcat(http_header,html);
 		send(*((int*)Client),http_header,sizeof(http_header),0);
-		fclose(html_data);
-
+		//send(*((int*)Client),html,sizeof(html),0);
 
 	}else{
 		cout << "ERROR 404" << endl;
