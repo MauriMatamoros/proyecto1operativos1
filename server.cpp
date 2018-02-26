@@ -13,28 +13,34 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-#define Port 8000
+#define Port 8080
 
 using namespace std;
 
 void *req(void *client);
 
-int main(int argc, char const *argv[]) {
+struct Params {
+	char* request;
+	char* route;
+	char* payload;
+};
 
+int main(int argc, char const *argv[]) {
+	vector<pthread_t> ThreadPool;
 	FILE *html_data;
 	//r - read nada mas
 	html_data = fopen("index.html","r");
 	char response_data[1024];
 	//para leer el archivo y meterlo a response data
 	fgets(response_data, 1024,html_data);
-	cout<<response_data<<endl;
-	vector<pthread_t> ThreadPool;
+	// cout<<response_data<<endl;
+	
 
 	char http_header[2048]="HTTP/1.1 200 OK\r\n\n";
 	strcat(http_header,response_data);
 
 
-
+	fclose(html_data);
 	int Client;
 	int Accept = 1;
 	char buffer[256]; //Buffer para recibir mensajes
@@ -70,14 +76,16 @@ int main(int argc, char const *argv[]) {
 	while(true){
 		Client = accept(Server, (struct sockaddr*) &ServerAddress, &SocketSize);
 		if(Client){
-			send(Client,http_header,sizeof(http_header),0);
 			pthread_t thread;
 			pthread_create(&thread, NULL, req, (void*) &Client);
+			pthread_join(thread, NULL);
 		}
 		if(Client < 0 ){
 			cout << "Error conectando al server" << endl;
 		}
-		//mandar data al cliente con send
+		//mandar data al cliente con sendt
+		
+
 	}
   	close(Server);
 	return 0;
@@ -85,14 +93,51 @@ int main(int argc, char const *argv[]) {
 
 void* req(void* Client) {
 	sleep(0.1);
-	std::cout << "client thread" << '\n';
+	cout << "client thread" << endl;
 	int connection = *((int*) Client);
 	char buffer[999999], *requestLine[3], dataToSend[256], path[99999], *requestLine2[7];
 	int received, fileDirectory, bytesRead;
+	
 	received = recv(connection, buffer, 99999, 0);
-	cout<<buffer<<endl;
-	send(connection, buffer, 16, 0);
-	write(connection, buffer, 16);
+	Params parametros;
+	parametros.request = strtok(buffer, " ");
+	parametros.route = strtok(NULL, " ");
+	parametros.payload = strtok(NULL, " \t\n");
+	cout << "request: " << parametros.request<<endl;
+	cout << "route: " << parametros.route<<endl;
+	cout<< "payload: " << parametros.payload << endl;
+	if(strcmp(parametros.request, "GET") == 0) {
+		FILE *html_data;
+		html_data = fopen("index.html","r");
+		char response_data[1024];
+		fgets(response_data, 1024,html_data);
+		char http_header[2048]="HTTP/1.1 200 OK\r\n\n";
+		strcat(http_header,response_data);
+		send(*((int*)Client),http_header,sizeof(http_header),0);
+		fclose(html_data);
+	}else if(strcmp(parametros.request, "POST") == 0) {
+
+
+	}else if(strcmp(parametros.request, "PUT") == 0 ){
+		FILE *html_data;
+		html_data = fopen("index.html","r");
+		char response_data[1024];
+		fgets(response_data, 1024,html_data);
+		char http_header[2048]="HTTP/1.1 200 OK\r\n\n";
+		strcat(http_header,response_data);
+		send(*((int*)Client),http_header,sizeof(http_header),0);
+		fclose(html_data);
+
+		
+	}else{
+		cout << "ERROR 404" << endl;
+	}
+	// cout<< "request: " <<parametros.request<<endl;
+	// cout<< "route: " <<parametros.route<<endl;
+	// cout<< "payload: " <<parametros.payload<<endl;
+	// send(connection, buffer, 16, 0);	
+
+	// write(connection, buffer, 16);
 	shutdown (connection, SHUT_RDWR);
 	close(connection);
 	connection--;
