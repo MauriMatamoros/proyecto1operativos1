@@ -95,18 +95,24 @@ void* req(void* Client) {
 	sleep(0.1);
 	cout << "client thread" << endl;
 	int connection = *((int*) Client);
-	char buffer[999999], *requestLine[3], dataToSend[256], path[99999], *requestLine2[7];
+	char buffer[999999];
 	int received, fileDirectory, bytesRead;
 	
+	
 	received = recv(connection, buffer, 99999, 0);
+	// char mime*;
+	// mime = buffer;
+	// cout<< mime<< endl;
 	Params parametros;
 	parametros.request = strtok(buffer, " ");
 	parametros.route = strtok(NULL, " ");
 	parametros.payload = strtok(NULL, " \t\n");
-	cout << "request: " << parametros.request<<endl;
-	cout << "route: " << parametros.route<<endl;
-	cout<< "payload: " << parametros.payload << endl;
+	// cout << "request: " << parametros.request<<endl;
+	// cout << "route: " << parametros.route<<endl;
+	// cout<< "payload: " << parametros.payload << endl;
 	if(strcmp(parametros.request, "GET") == 0) {
+
+
 		FILE *html_data;
 		html_data = fopen("index.html","r");
 		char response_data[1024];
@@ -116,6 +122,29 @@ void* req(void* Client) {
 		send(*((int*)Client),http_header,sizeof(http_header),0);
 		fclose(html_data);
 	}else if(strcmp(parametros.request, "POST") == 0) {
+		char* UncleanKey;
+		char* Value;
+		UncleanKey = strtok(parametros.route, "=");
+		Value = strtok(NULL,"");
+		int size = strlen(UncleanKey);
+		size-=2;
+		char Key[size];
+		for (int i = 2; i < size+2; ++i){
+			Key[i-2] = UncleanKey[i];
+		}
+		cout<<"Key: "<< Key<<endl;
+		cout<<"Value: "<< Value<<endl;
+		char html [2048]="HTTP/1.1 200 OK\r\n\n";
+		strcat(html,"<!DOCTYPE html><html><head><title>Linux Server</title></head><body><h1>Titulo: ");
+		strcat(html, Key);
+		strcat(html, "</h1><br/><p>Cuerpo: ");
+		strcat(html, Value);
+		strcat(html, "</p></body><br/></html>");
+
+
+		send(*((int*)Client),html,sizeof(html),0);
+		
+		
 
 
 	}else if(strcmp(parametros.request, "PUT") == 0 ){
@@ -128,7 +157,7 @@ void* req(void* Client) {
 		send(*((int*)Client),http_header,sizeof(http_header),0);
 		fclose(html_data);
 
-		
+
 	}else{
 		cout << "ERROR 404" << endl;
 	}
