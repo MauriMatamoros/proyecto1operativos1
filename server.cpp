@@ -71,10 +71,11 @@ int main(int argc, char const *argv[]) {
 
 	SocketSize = sizeof(ServerAddress);
 	cout<< "Esperando conexion..."<<endl;
-	if(listen(Server, 1)==-1){
-		perror("Error on listen");
-		return 1;
-	}
+	// if(listen(Server, 1)==-1){
+	// 	perror("Error on listen");
+	// 	return 1;
+	// }
+	listen(Server, 5);
 
 	while(true){
 		Client = accept(Server, (struct sockaddr*) &ServerAddress, &SocketSize);
