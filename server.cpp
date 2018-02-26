@@ -84,6 +84,7 @@ int main(int argc, char const *argv[]) {
 }
 
 void* req(void* Client) {
+	sleep(0.1);
 	std::cout << "client thread" << '\n';
 	int connection = *((int*) Client);
 	char buffer[999999], *requestLine[3], dataToSend[256], path[99999], *requestLine2[7];
